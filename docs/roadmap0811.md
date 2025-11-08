@@ -29,8 +29,8 @@
 
 ### Piano Roll Interactions
 - [x] **Piano key click-to-play** - ✅ Implemented in PianoKeys.tsx with 300ms auto-release
-- [ ] **Piano key highlight on click** - Need to integrate with activeNotes state (currently only highlights during playback)
-- [x] **Piano key highlight during playback** - ✅ Already implemented via activeNotes prop
+- [x] **Piano key highlight on click** - ✅ Integrated with liveEvents system, highlights when clicked
+- [x] **Piano key highlight during playback** - ✅ Highlights via activeNotes Set from liveEvents
 
 ### UI Improvements
 - [x] **Change settings icon** - ✅ Changed to gear emoji (⚙️) in TopBar.tsx

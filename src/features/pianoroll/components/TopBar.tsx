@@ -15,8 +15,8 @@ import { useViewStore } from "@/core/stores/useViewStore";
 import { TopBarMidiControls } from "./TopBarMidiControls";
 
 const VIEW_OPTIONS: Array<{ id: WorkspaceView; label: string; shortcut: string }> = [
-  { id: "piano-roll", label: "Piano Roll", shortcut: "F7" },
   { id: "playlist", label: "Playlist", shortcut: "F5" },
+  { id: "piano-roll", label: "Piano Roll", shortcut: "F7" },
   { id: "mixer", label: "Mixer", shortcut: "F9" },
 ];
 
