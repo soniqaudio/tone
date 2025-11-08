@@ -1,0 +1,472 @@
+/**
+ * SampleMaker Design System
+ * HSL-based color system with proper depth and hierarchy
+ */
+
+:root {
+  /* === NEUTRAL PALETTE (Saturation = 0) === */
+  /* Incremental lightness scale for depth */
+  --bg-0: hsl(0, 0%, 5%); /* Deepest - base page */
+  --bg-5: hsl(0, 0%, 8%); /* Sunken elements (inputs) */
+  --bg-10: hsl(0, 0%, 10%); /* First elevation (sidebar) */
+  --bg-15: hsl(0, 0%, 13%); /* Second elevation (top bar, cards) */
+  --bg-20: hsl(0, 0%, 16%); /* Third elevation (modals, popups) */
+  --bg-25: hsl(0, 0%, 19%); /* Hover states */
+  --bg-30: hsl(0, 0%, 22%); /* Active/pressed states */
+
+  /* Semantic naming for common uses */
+  --bg-base: var(--bg-0);
+  --bg-layer-1: var(--bg-10);
+  --bg-layer-2: var(--bg-15);
+  --bg-layer-3: var(--bg-20);
+  --surface-input: var(--bg-5);
+  --surface-hover: var(--bg-25);
+
+  /* Text hierarchy - decreasing contrast */
+  --text-primary: hsl(0, 0%, 92%); /* Main headings */
+  --text-secondary: hsl(0, 0%, 70%); /* Body text */
+  --text-tertiary: hsl(0, 0%, 50%); /* Labels, muted */
+  --text-disabled: hsl(0, 0%, 35%); /* Disabled */
+
+  /* Borders - subtle increments */
+  --border-subtle: hsla(0, 0%, 100%, 0.06);
+  --border-medium: hsla(0, 0%, 100%, 0.1);
+  --border-strong: hsla(0, 0%, 100%, 0.15);
+
+  /* Highlight for shiny effect */
+  --highlight-top: hsla(0, 0%, 100%, 0.08);
+
+  /* === PRIMARY COLOR (Brand/Actions) === */
+  --primary-hue: 217;
+  --primary: hsl(var(--primary-hue), 91%, 60%);
+  --primary-hover: hsl(var(--primary-hue), 91%, 65%);
+  --primary-active: hsl(var(--primary-hue), 91%, 55%);
+  --primary-muted: hsl(var(--primary-hue), 91%, 50%);
+  --primary-bg: hsl(var(--primary-hue), 91%, 15%);
+
+  --accent-hue: 286;
+  --accent: hsl(var(--accent-hue), 91%, 65%);
+  --accent-soft: hsla(var(--accent-hue), 91%, 55%, 0.35);
+  --accent-bg: hsla(var(--accent-hue), 91%, 22%, 0.28);
+
+  /* === SEMANTIC COLORS === */
+  --success: hsl(142, 76%, 45%);
+  --success-bg: hsl(142, 76%, 15%);
+  --error: hsl(0, 84%, 60%);
+  --error-bg: hsl(0, 84%, 15%);
+  --warning: hsl(38, 92%, 50%);
+  --warning-bg: hsl(38, 92%, 15%);
+
+  /* === COMPOUND SHADOWS === */
+  /* Light from top principle: subtle highlight + realistic shadow */
+
+  /* Small elevation - buttons, small cards */
+  --shadow-sm:
+    0 0 0 1px var(--border-subtle), 0 1px 2px 0 hsla(0, 0%, 0%, 0.4), inset 0 1px 0 0
+    var(--highlight-top);
+
+  /* Medium elevation - cards, panels */
+  --shadow-md:
+    0 0 0 1px var(--border-subtle),
+    0 2px 4px -1px hsla(0, 0%, 0%, 0.4),
+    0 4px 6px -1px hsla(0, 0%, 0%, 0.3),
+    inset 0 1px 0 0 var(--highlight-top);
+
+  /* Large elevation - modals, dropdowns */
+  --shadow-lg:
+    0 0 0 1px var(--border-medium),
+    0 4px 6px -2px hsla(0, 0%, 0%, 0.5),
+    0 10px 15px -3px hsla(0, 0%, 0%, 0.4),
+    inset 0 1px 0 0 var(--highlight-top);
+
+  /* Extra large - overlays */
+  --shadow-xl:
+    0 0 0 1px var(--border-medium),
+    0 10px 15px -3px hsla(0, 0%, 0%, 0.6),
+    0 20px 25px -5px hsla(0, 0%, 0%, 0.5),
+    inset 0 1px 0 0 var(--highlight-top);
+
+  /* Inset shadow - sunken/pressed elements */
+  --shadow-inset:
+    inset 0 0 0 1px hsla(0, 0%, 0%, 0.1), inset 0 2px 4px 0 hsla(0, 0%, 0%, 0.4), inset 0 -1px 0 0
+    hsla(0, 0%, 100%, 0.03);
+
+  /* Glow effect for primary/active states */
+  --shadow-glow-primary:
+    0 0 0 1px hsl(var(--primary-hue), 91%, 50%), 0 0 12px 0 hsla(var(--primary-hue), 91%, 50%, 0.3),
+    0 2px 4px 0 hsla(var(--primary-hue), 91%, 30%, 0.4), inset 0 1px 0 0
+    hsla(var(--primary-hue), 91%, 70%, 0.2);
+
+  /* === SPACING SYSTEM (8px grid) === */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+
+  /* === BORDER RADIUS === */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  --radius-full: 9999px;
+
+  /* === TRANSITIONS === */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === TYPOGRAPHY === */
+  --font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+}
+
+@layer utilities {
+  /* Background utilities */
+  .bg-base {
+    background-color: var(--bg-base);
+  }
+  .bg-layer-1 {
+    background-color: var(--bg-layer-1);
+  }
+  .bg-layer-2 {
+    background-color: var(--bg-layer-2);
+  }
+  .bg-layer-3 {
+    background-color: var(--bg-layer-3);
+  }
+  .bg-surface-input {
+    background-color: var(--surface-input);
+  }
+  .bg-surface-hover {
+    background-color: var(--surface-hover);
+  }
+
+  /* Text utilities */
+  .text-primary {
+    color: var(--text-primary);
+  }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  .text-tertiary {
+    color: var(--text-tertiary);
+  }
+  .text-disabled {
+    color: var(--text-disabled);
+  }
+
+  /* Border utilities */
+  .border-subtle {
+    border-color: var(--border-subtle);
+  }
+  .border-medium {
+    border-color: var(--border-medium);
+  }
+  .border-strong {
+    border-color: var(--border-strong);
+  }
+
+  /* Shadow utilities */
+  .shadow-layer-sm {
+    box-shadow: var(--shadow-sm);
+  }
+  .shadow-layer-md {
+    box-shadow: var(--shadow-md);
+  }
+  .shadow-layer-lg {
+    box-shadow: var(--shadow-lg);
+  }
+  .shadow-layer-xl {
+    box-shadow: var(--shadow-xl);
+  }
+  .shadow-layer-inset {
+    box-shadow: var(--shadow-inset);
+  }
+  .shadow-glow-primary {
+    box-shadow: var(--shadow-glow-primary);
+  }
+
+  .bg-brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary-hue), 91%, 62%) 0%,
+      hsl(var(--primary-hue), 91%, 54%) 100%
+    );
+  }
+
+  .bg-accent-gradient {
+    background-image: linear-gradient(
+      135deg,
+      var(--accent) 0%,
+      hsla(var(--accent-hue), 91%, 60%, 0.72) 100%
+    );
+  }
+
+  .bg-noise-soft {
+    background-image: radial-gradient(hsla(0, 0%, 100%, 0.03) 1px, transparent 0);
+    background-size: 3px 3px;
+  }
+
+  .text-mono {
+    font-family: var(--font-mono);
+  }
+
+  .bg-glass-dark {
+    background: linear-gradient(180deg, hsla(0, 0%, 12%, 0.92) 0%, hsla(0, 0%, 8%, 0.88) 100%);
+    backdrop-filter: blur(18px);
+  }
+
+  .bg-panel-fade {
+    background: linear-gradient(180deg, hsla(0, 0%, 11%, 0.88) 0%, hsla(0, 0%, 7%, 0.92) 100%);
+  }
+
+  .bg-grid-veil {
+    background-image:
+      radial-gradient(circle at 20% -10%, hsla(var(--accent-hue), 85%, 55%, 0.14), transparent 55%),
+      radial-gradient(circle at 80% -20%, hsla(var(--primary-hue), 95%, 55%, 0.12), transparent 55%);
+  }
+
+  /* Highlight utilities */
+  .highlight-top-line {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--highlight-top) 50%,
+      transparent 100%
+    );
+  }
+
+  .highlight-right-line {
+    background-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--highlight-top) 50%,
+      transparent 100%
+    );
+  }
+
+  .hover-lift {
+    transition:
+      transform var(--transition-fast),
+      background-color var(--transition-fast);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .press-in:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-layer-inset);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+    background: linear-gradient(180deg, hsla(0, 0%, 20%, 0.32), hsla(0, 0%, 12%, 0.38));
+  }
+
+  .chip-active {
+    color: var(--primary);
+    border-color: hsla(var(--primary-hue), 91%, 55%, 0.5);
+    background: linear-gradient(
+      180deg,
+      hsla(var(--primary-hue), 85%, 45%, 0.22),
+      hsla(var(--primary-hue), 85%, 30%, 0.22)
+    );
+    box-shadow: 0 8px 18px -14px hsla(var(--primary-hue), 91%, 60%, 0.8);
+  }
+
+  .panel {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    background: linear-gradient(180deg, hsla(0, 0%, 15%, 0.85), hsla(0, 0%, 10%, 0.92));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .floating-shadow {
+    box-shadow:
+      0 18px 45px -25px rgba(0, 0, 0, 0.8),
+      0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .divider-soft {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+  }
+
+  /* Radii */
+  .rounded-token-sm {
+    border-radius: var(--radius-sm);
+  }
+  .rounded-token-md {
+    border-radius: var(--radius-md);
+  }
+  .rounded-token-lg {
+    border-radius: var(--radius-lg);
+  }
+  .rounded-token-xl {
+    border-radius: var(--radius-xl);
+  }
+
+  /* Transition utilities */
+  .transition-fast {
+    transition: all var(--transition-fast);
+  }
+  .transition-base {
+    transition: all var(--transition-base);
+  }
+  .transition-slow {
+    transition: all var(--transition-slow);
+  }
+
+  /* Focus outline */
+  .focus-ring-primary:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 1px var(--primary),
+      0 0 0 4px hsla(var(--primary-hue), 91%, 60%, 0.25);
+  }
+}
+
+@layer components {
+  .card {
+    background-color: var(--bg-layer-2);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .card-inset {
+    background-color: var(--surface-input);
+    box-shadow: var(--shadow-inset);
+    border-radius: var(--radius-md);
+  }
+
+  .pill {
+    background-color: var(--surface-input);
+    box-shadow: var(--shadow-inset);
+    border-radius: var(--radius-md);
+  }
+
+  .badge-muted {
+    background-color: hsla(0, 0%, 100%, 0.06);
+    color: var(--text-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+/* Light mode overrides (reverse lightness values) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-base: hsl(0, 0%, 98%);
+    --bg-layer-1: hsl(0, 0%, 95%);
+    --bg-layer-2: hsl(0, 0%, 92%);
+    --bg-layer-3: hsl(0, 0%, 88%);
+
+    --surface-input: hsl(0, 0%, 100%);
+    --surface-hover: hsl(0, 0%, 96%);
+
+    --text-primary: hsl(0, 0%, 10%);
+    --text-secondary: hsl(0, 0%, 35%);
+    --text-tertiary: hsl(0, 0%, 50%);
+    --text-disabled: hsl(0, 0%, 65%);
+
+    --border-subtle: hsl(0, 0%, 88%);
+    --border-medium: hsl(0, 0%, 82%);
+    --border-strong: hsl(0, 0%, 75%);
+
+    --shadow-sm: 0 1px 0 0 hsl(0, 0%, 0%, 0.02), 0 1px 2px 0 hsl(0, 0%, 0%, 0.1);
+
+    --shadow-md:
+      0 1px 0 0 hsl(0, 0%, 0%, 0.03), 0 2px 4px 0 hsl(0, 0%, 0%, 0.15), 0 4px 8px 0
+      hsl(0, 0%, 0%, 0.08);
+
+    --shadow-lg:
+      0 1px 0 0 hsl(0, 0%, 0%, 0.04), 0 4px 8px 0 hsl(0, 0%, 0%, 0.2), 0 8px 16px 0
+      hsl(0, 0%, 0%, 0.12);
+
+    --shadow-inset: inset 0 1px 2px 0 hsl(0, 0%, 0%, 0.08), inset 0 -1px 0 0 hsl(0, 0%, 100%, 0.5);
+  }
+}
+
+/* === UTILITY CLASSES === */
+
+/* Elevation system */
+.elevation-1 {
+  background: var(--bg-layer-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.elevation-2 {
+  background: var(--bg-layer-2);
+  box-shadow: var(--shadow-md);
+}
+
+.elevation-3 {
+  background: var(--bg-layer-3);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Depressed/inset elements */
+.surface-inset {
+  background: var(--surface-input);
+  box-shadow: var(--shadow-inset);
+}
+
+/* Interactive states */
+.interactive {
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.interactive:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.interactive:active {
+  transform: translateY(0);
+}
+
+/* Text hierarchy */
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+/* Shiny highlight effect */
+.highlight-top {
+  position: relative;
+}
+
+.highlight-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, hsl(0, 0%, 100%, 0.08) 50%, transparent 100%);
+  pointer-events: none;
+}

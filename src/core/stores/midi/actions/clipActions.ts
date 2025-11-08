@@ -1,0 +1,155 @@
+import type { MidiNoteClip } from "@/core/midi/types";
+import { midiNumberToName } from "@/core/midi/utils";
+import type { MidiState } from "../types";
+import { deriveFromEvents, noteEventsFromClip } from "./sharedHelpers";
+
+export const createClipActions = (
+  get: () => MidiState,
+  set: (partial: Partial<MidiState> | ((state: MidiState) => Partial<MidiState>)) => void,
+) => ({
+  addClip: (clip: MidiNoteClip) => {
+    const state = get();
+    const events = [...state.events, ...noteEventsFromClip(clip)];
+    const derived = deriveFromEvents(events, undefined, [...state.clips, clip]);
+
+    set({
+      events,
+      ...derived,
+    });
+  },
+
+  removeClip: (clipId: string) => {
+    const state = get();
+    const events = state.events.filter((event) =>
+      event.type === "cc" ? true : event.noteId !== clipId,
+    );
+
+    const derived = deriveFromEvents(events, undefined, state.clips);
+
+    set({
+      events,
+      ...derived,
+      selectedClipIds: state.selectedClipIds.filter((id) => id !== clipId),
+    });
+  },
+
+  updateClipDuration: (clipId: string, newDuration: number) => {
+    const state = get();
+    const clip = state.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+
+    const updatedEvents = state.events.map((event) => {
+      if (event.type === "noteOff" && event.noteId === clipId) {
+        return {
+          ...event,
+          timestamp: clip.start + newDuration,
+        };
+      }
+      return event;
+    });
+
+    const derived = deriveFromEvents(updatedEvents, undefined, state.clips);
+
+    set({
+      events: updatedEvents,
+      ...derived,
+    });
+  },
+
+  updateClips: (
+    updates: Array<{
+      id: string;
+      start: number;
+      noteNumber: number;
+    }>,
+  ) => {
+    const state = get();
+    const updateMap = new Map(
+      updates.map((update) => [update.id, { ...update, start: Math.max(0, update.start) }]),
+    );
+
+    const updatedClips = state.clips.map((clip) => {
+      const update = updateMap.get(clip.id);
+      if (!update) return clip;
+
+      const boundedNoteNumber = Math.max(0, Math.min(127, update.noteNumber));
+      return {
+        ...clip,
+        start: update.start,
+        noteNumber: boundedNoteNumber,
+        noteName: midiNumberToName(boundedNoteNumber),
+      };
+    });
+
+    const updatedClipMap = new Map(updatedClips.map((clip) => [clip.id, clip]));
+
+    const updatedEvents = state.events.map((event) => {
+      if (event.type === "cc") return event;
+      const clip = updatedClipMap.get(event.noteId);
+      if (!clip) return event;
+
+      if (event.type === "noteOn") {
+        return {
+          ...event,
+          timestamp: clip.start,
+          noteNumber: clip.noteNumber,
+        };
+      }
+
+      if (event.type === "noteOff") {
+        return {
+          ...event,
+          timestamp: clip.start + clip.duration,
+          noteNumber: clip.noteNumber,
+        };
+      }
+
+      return event;
+    });
+
+    const derived = deriveFromEvents(updatedEvents, undefined, updatedClips);
+
+    set({
+      events: updatedEvents,
+      clips: derived.clips,
+      clipsWithoutSustain: derived.clipsWithoutSustain,
+      controlEvents: derived.controlEvents,
+    });
+  },
+
+  updateClipVelocity: (clipIds: string[], velocity: number) => {
+    if (clipIds.length === 0) return;
+    const state = get();
+    const clampedVelocity = Math.max(0, Math.min(1, velocity));
+    const idSet = new Set(clipIds);
+
+    const updatedClips = state.clips.map((clip) => {
+      if (!idSet.has(clip.id)) return clip;
+      return {
+        ...clip,
+        velocity: clampedVelocity,
+      };
+    });
+
+    const updatedEvents = state.events.map((event) => {
+      if (event.type === "cc" || !idSet.has(event.noteId)) {
+        return event;
+      }
+      return {
+        ...event,
+        velocity: clampedVelocity,
+      };
+    });
+
+    const derived = deriveFromEvents(updatedEvents, undefined, updatedClips);
+
+    set({
+      events: updatedEvents,
+      clips: derived.clips,
+      clipsWithoutSustain: derived.clipsWithoutSustain,
+      controlEvents: derived.controlEvents,
+    });
+  },
+
+  setSelectedClipIds: (ids: string[]) => set({ selectedClipIds: ids }),
+});
