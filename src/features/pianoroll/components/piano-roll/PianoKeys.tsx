@@ -1,5 +1,8 @@
 "use client";
 
+import { audioEngine } from "@/core/audio/audioEngine";
+import { getActiveTrackId } from "@/core/utils/trackUtils";
+
 interface PianoKeysProps {
   pianoKeys: Array<{ note: string; isBlack: boolean; midi: number }>;
   keyHeight: number;
@@ -7,6 +10,16 @@ interface PianoKeysProps {
 }
 
 export const PianoKeys = ({ pianoKeys, keyHeight, activeNotes }: PianoKeysProps) => {
+  const handleKeyClick = (midiNote: number) => {
+    const trackId = getActiveTrackId();
+    audioEngine.resume().catch(() => undefined);
+    audioEngine.noteOn(midiNote, 80, trackId);
+
+    // Release note after short duration
+    setTimeout(() => {
+      audioEngine.noteOff(midiNote, trackId);
+    }, 300);
+  };
   return (
     <div className="w-20 border-r border-subtle bg-layer-2/90 backdrop-blur">
       <div className="relative" style={{ height: `${pianoKeys.length * keyHeight}px` }}>
@@ -24,6 +37,8 @@ export const PianoKeys = ({ pianoKeys, keyHeight, activeNotes }: PianoKeysProps)
               key={key.midi}
               className={`${baseClasses} ${toneClasses} ${stateClasses} cursor-pointer`}
               style={{ top: `${index * keyHeight}px`, height: `${keyHeight}px` }}
+              onClick={() => handleKeyClick(key.midi)}
+              onMouseDown={(e) => e.preventDefault()}
             >
               <span className="select-none text-[10px] font-medium mix-blend-normal">
                 {key.note}

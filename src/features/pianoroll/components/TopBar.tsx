@@ -271,16 +271,15 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-[rgba(6,6,9,0.92)] text-sm text-zinc-200 backdrop-blur-sm">
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3">
-        <div className="flex min-w-[220px] items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
-              tn
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white">tone</p>
-              <p className="text-xs text-zinc-500">Untitled Project</p>
-            </div>
+      <div className="flex items-center justify-between gap-4 px-4 py-3">
+        {/* LEFT: Logo + File/Edit */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-bold text-white shadow-lg">
+            tn
+          </div>
+          <div className="hidden sm:block">
+            <p className="text-sm font-semibold text-white">tone</p>
+            <p className="text-xs text-zinc-500">Untitled Project</p>
           </div>
           <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2 py-1 md:flex">
             <MenuDropdown label="File" items={fileMenuItems} />
@@ -289,101 +288,8 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
           </div>
         </div>
 
-        <div className="flex min-w-[260px] flex-1 items-center gap-3">
-          <div className={`${controlBlock} hidden lg:flex`}>
-            {VIEW_OPTIONS.map((option) => {
-              const isActive = activeView === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setActiveView(option.id)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white"
-                  }`}
-                  aria-pressed={isActive}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="lg:hidden">
-            <select
-              value={activeView}
-              onChange={(event) => setActiveView(event.target.value as WorkspaceView)}
-              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
-            >
-              {VIEW_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <select
-            id={gridSelectId}
-            value={gridResolutionId}
-            onChange={(event) => setGridResolution(event.target.value)}
-            className="h-9 min-w-[5.5rem] rounded-lg border border-white/12 bg-black/40 px-2.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
-          >
-            {PIANO_ROLL.GRID_RESOLUTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.02] p-1">
-            <button
-              type="button"
-              onClick={() => undo()}
-              disabled={!canUndo}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-zinc-300 transition-colors hover:border-white/15 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
-              title="Undo"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3.5 w-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => redo()}
-              disabled={!canRedo}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-zinc-300 transition-colors hover:border-white/15 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
-              title="Redo"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3.5 w-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 justify-end">
+        {/* CENTER: Transport Controls */}
+        <div className="flex items-center gap-3">
           <div className="hidden items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 sm:flex">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-zinc-500">
@@ -440,15 +346,17 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
               <svg
                 aria-hidden="true"
                 className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.6}
+                viewBox="0 0 256 256"
+                fill="currentColor"
               >
-                <path d="M9 21h6l2-7-4-8H11L7 14l2 7Z" strokeLinejoin="round" />
-                <path d="M9 14h6" strokeLinecap="round" />
-                <path d="M13 8l4 7" strokeLinecap="round" />
-                <circle cx="17" cy="17" r="1" />
+                <path
+                  fillRule="evenodd"
+                  d="M64.458 228.867c-.428 2.167 1.007 3.91 3.226 3.893l121.557-.938c2.21-.017 3.68-1.794 3.284-3.97l-11.838-64.913c-.397-2.175-1.626-2.393-2.747-.487l-9.156 15.582c-1.12 1.907-1.71 5.207-1.313 7.388l4.915 27.03c.395 2.175-1.072 3.937-3.288 3.937H88.611c-2.211 0-3.659-1.755-3.233-3.92L114.85 62.533l28.44-.49 11.786 44.43c.567 2.139 2.01 2.386 3.236.535l8.392-12.67c1.22-1.843 1.73-5.058 1.139-7.185l-9.596-34.5c-1.184-4.257-5.735-7.677-10.138-7.638l-39.391.349c-4.415.039-8.688 3.584-9.544 7.912L64.458 228.867z"
+                />
+                <path
+                  fillRule="evenodd"
+                  d="M118.116 198.935c-1.182 1.865-.347 3.377 1.867 3.377h12.392c2.214 0 4.968-1.524 6.143-3.39l64.55-102.463c1.18-1.871 3.906-3.697 6.076-4.074l9.581-1.667c2.177-.379 4.492-2.38 5.178-4.496l4.772-14.69c.683-2.104-.063-5.034-1.677-6.555L215.53 54.173c-1.609-1.517-4.482-1.862-6.4-.78l-11.799 6.655c-1.925 1.086-3.626 3.754-3.799 5.954l-.938 11.967c-.173 2.202-1.27 5.498-2.453 7.363l-72.026 113.603z"
+                />
               </svg>
             </button>
             <button
@@ -462,6 +370,101 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
               </svg>
             </button>
           </div>
+        </div>
+
+        {/* RIGHT: View Selector + Grid + Undo/Redo + Settings */}
+        <div className="flex items-center gap-2">
+          <div className={`${controlBlock} hidden lg:flex`}>
+            {VIEW_OPTIONS.map((option) => {
+              const isActive = activeView === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setActiveView(option.id)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="lg:hidden">
+            <select
+              value={activeView}
+              onChange={(event) => setActiveView(event.target.value as WorkspaceView)}
+              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+            >
+              {VIEW_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <select
+            id={gridSelectId}
+            value={gridResolutionId}
+            onChange={(event) => setGridResolution(event.target.value)}
+            className="h-9 min-w-[5.5rem] rounded-lg border border-white/12 bg-black/40 px-2.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+          >
+            {PIANO_ROLL.GRID_RESOLUTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.02] p-0.5">
+            <button
+              type="button"
+              onClick={() => undo()}
+              disabled={!canUndo}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-zinc-400 transition-colors hover:border-white/15 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              title="Undo (Cmd+Z)"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => redo()}
+              disabled={!canRedo}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-zinc-400 transition-colors hover:border-white/15 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              title="Redo (Cmd+Shift+Z)"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"
+                />
+              </svg>
+            </button>
+          </div>
 
           <div className="relative" ref={settingsRef}>
             <button
@@ -472,20 +475,7 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
               aria-haspopup="true"
               aria-expanded={settingsOpen}
             >
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 7.5a4.5 4.5 0 104.5 4.5A4.5 4.5 0 0012 7.5Zm0-4v2m0 13v2M4.5 12h-2m19 0h-2M6.2 6.2l-1.4-1.4m14.5 14.5-1.4-1.4m0-11.7 1.4-1.4M4.8 19.8l1.4-1.4"
-                />
-              </svg>
+              <span className="text-lg">⚙️</span>
             </button>
             {settingsOpen ? (
               <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-white/10 bg-[rgba(10,10,14,0.95)] p-4 shadow-layer-lg">

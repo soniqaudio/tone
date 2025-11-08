@@ -23,6 +23,7 @@ export function AppShell() {
   const updateRecordingPreviews = useMidiStore((state) => state.actions.updateRecordingPreviews);
 
   const activeView = useViewStore((state) => state.activeView);
+  const setActiveView = useViewStore((state) => state.actions.setActiveView);
 
   useStopRecordingOnTransport();
   useMetronome();
@@ -80,6 +81,53 @@ export function AppShell() {
     }
     return <PianoRoll />;
   }, [activeView]);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      // Spacebar: Play/Pause (unless typing in input)
+      if (e.code === "Space" && !isInputElement(e.target)) {
+        e.preventDefault();
+        handlePlay();
+        return;
+      }
+
+      // Cmd/Ctrl+1/2/3: View switching
+      if (cmdOrCtrl && !e.shiftKey && !e.altKey) {
+        if (e.key === "1") {
+          e.preventDefault();
+          setActiveView("playlist");
+          return;
+        }
+        if (e.key === "2") {
+          e.preventDefault();
+          setActiveView("piano-roll");
+          return;
+        }
+        if (e.key === "3") {
+          e.preventDefault();
+          setActiveView("mixer");
+          return;
+        }
+      }
+    };
+
+    const isInputElement = (target: EventTarget | null): boolean => {
+      if (!target) return false;
+      const element = target as HTMLElement;
+      return (
+        element.tagName === "INPUT" ||
+        element.tagName === "TEXTAREA" ||
+        element.isContentEditable
+      );
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handlePlay, setActiveView]);
 
   return (
     <div className="flex h-screen w-full flex-col bg-zinc-950 font-sans text-zinc-50">
