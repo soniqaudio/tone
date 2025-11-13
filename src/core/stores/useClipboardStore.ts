@@ -11,7 +11,6 @@ interface ClipboardItem {
 
 interface MidiClipboard {
   items: ClipboardItem[];
-  baseMs: number;
   baseNoteNumber: number;
 }
 

@@ -50,6 +50,7 @@ export const useMidiAccess = (): MidiAccessResult => {
     if (typeof navigator === "undefined" || !navigator.requestMIDIAccess) {
       setState("error");
       setError("Web MIDI API is not supported in this browser.");
+      requestedRef.current = false;
       return;
     }
 
@@ -62,8 +63,15 @@ export const useMidiAccess = (): MidiAccessResult => {
       const message = err instanceof Error ? err.message : "Unknown error requesting MIDI access.";
       setError(message);
       setState(message.includes("permission") ? "denied" : "error");
+      requestedRef.current = false;
     }
   }, []);
+
+  useEffect(() => {
+    if (state === "error" || state === "denied") {
+      requestedRef.current = false;
+    }
+  }, [state]);
 
   // When access changes, sync devices and subscribe to changes
   useEffect(() => {

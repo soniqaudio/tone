@@ -6,6 +6,7 @@ import {
   prepareClipsForPlayback,
 } from "@/core/playback/prepareClips";
 import { useMidiStore } from "@/core/stores/useMidiStore";
+import { useMusicTheoryStore } from "@/core/stores/useMusicTheoryStore";
 import { useTransportStore } from "@/core/stores/useTransportStore";
 
 interface StopOptions {
@@ -26,6 +27,22 @@ class PlaybackController {
   private readonly schedulerHorizonMs = 180;
   private readonly catchUpMs = 20;
   private active = false;
+  private readonly loopPaddingBeats = 4;
+
+  private getLoopPaddingMs() {
+    const tempo = useMusicTheoryStore.getState().tempo;
+    const clampedTempo = Math.max(1, tempo);
+    return (60000 / clampedTempo) * this.loopPaddingBeats;
+  }
+
+  private getLoopEndMs() {
+    const padding = this.getLoopPaddingMs();
+    const hasClips = this.totalDurationMs > 0;
+    const base = hasClips
+      ? Math.max(this.totalDurationMs, this.playbackStartMs)
+      : this.playbackStartMs;
+    return (base || 0) + padding;
+  }
 
   async play(clips: MidiNoteClip[], startMs: number) {
     const targetStartMs = Math.max(0, startMs);
@@ -39,7 +56,7 @@ class PlaybackController {
     const { clips: ordered, totalDurationMs } = prepareClipsForPlayback(clips);
     this.orderedClips = ordered;
     this.totalDurationMs = totalDurationMs;
-    this.playbackStartMs = Math.min(targetStartMs, totalDurationMs || targetStartMs);
+    this.playbackStartMs = targetStartMs;
     this.playbackStartContextTimeSec = ctx.currentTime;
     this.clipIndex = findFirstPlayableIndex(ordered, this.playbackStartMs);
     this.scheduledThroughMs = this.playbackStartMs;
@@ -192,12 +209,13 @@ class PlaybackController {
       return null;
     }
 
-    if (this.totalDurationMs <= 0 || this.orderedClips.length === 0) {
+    const loopEndMs = this.getLoopEndMs();
+    if (loopEndMs <= 0) {
       return null;
     }
 
     const timelineMs = this.computeTimelinePosition(contextTimeSec);
-    if (timelineMs < this.totalDurationMs - 2) {
+    if (timelineMs < loopEndMs - 2) {
       return null;
     }
 

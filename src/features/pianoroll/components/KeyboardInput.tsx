@@ -179,12 +179,6 @@ export default function KeyboardInput() {
       const controllerOrNote = data1;
       const velocity = data2 ?? 0;
       const activeTrackId = getActiveTrackId();
-      const eventTime = (event as { receivedTime?: number }).receivedTime ?? performance.now();
-
-      const triggerRecordEvent = (type: "on" | "off", vel: number) => {
-        if (!recordArm) return;
-        recorder.push({ type, note: controllerOrNote, velocity: vel, time: eventTime });
-      };
 
       if (command === 0xb0) {
         if (controllerOrNote === 64) {
@@ -198,11 +192,9 @@ export default function KeyboardInput() {
         const noteNumber = controllerOrNote;
         audioEngine.resume().catch(() => undefined);
         audioEngine.noteOn(noteNumber, velocity, activeTrackId);
-        triggerRecordEvent("on", velocity);
       } else if (command === 0x80 || (command === 0x90 && velocity === 0)) {
         const noteNumber = controllerOrNote;
         audioEngine.noteOff(noteNumber, activeTrackId);
-        triggerRecordEvent("off", 0);
       }
     };
 
