@@ -8,6 +8,7 @@ import { useTrackStore } from "@/core/stores/useTrackStore";
 import { useTransportStore } from "@/core/stores/useTransportStore";
 import { useUIStore } from "@/core/stores/useUIStore";
 import { resolveTrackId } from "@/core/utils/trackUtils";
+import { PIANO_ROLL } from "@/core/constants/pianoRoll";
 import { useCanvasSize } from "./piano-roll/hooks/useCanvasSize";
 import { usePianoRollDerivedState } from "./piano-roll/hooks/usePianoRollDerivedState";
 import { usePianoRollInteractions } from "./piano-roll/hooks/usePianoRollInteractions";
@@ -73,8 +74,8 @@ const PianoRoll = () => {
 
   // Compute base timing values needed for scroll sync (without calling full derived state)
   const baseMsPerBeat = 60000 / Math.max(tempo, 1);
-  const basePixelsPerBeat = 64; // PIANO_ROLL.PIXELS_PER_BEAT
-  const baseKeyHeight = 16; // PIANO_ROLL.KEY_HEIGHT
+  const zoomedPixelsPerBeat = PIANO_ROLL.PIXELS_PER_BEAT * pianoRollZoom;
+  const zoomedKeyHeight = PIANO_ROLL.KEY_HEIGHT * pianoRollKeyHeight;
 
   // Canvas sizing
   const {
@@ -83,7 +84,7 @@ const PianoRoll = () => {
     scrollLeft,
     scrollTop,
     containerRef,
-  } = useCanvasSize(baseKeyHeight, 88); // 88 piano keys
+  } = useCanvasSize(zoomedKeyHeight, 88); // 88 piano keys
 
   // Scroll synchronization hook - computes gridExtraBeats internally using base grid width
   const { gridViewportWidth, gridExtraBeats } = usePianoRollScrollSync({
@@ -95,7 +96,7 @@ const PianoRoll = () => {
     activeTrackClips: baseActiveTrackClips,
     effectiveViewportWidth: fallbackViewportWidth,
     msPerBeat: baseMsPerBeat,
-    pixelsPerBeat: basePixelsPerBeat,
+    pixelsPerBeat: zoomedPixelsPerBeat,
     playheadMs,
     isPlaying,
     followPlayhead,
@@ -200,23 +201,74 @@ const PianoRoll = () => {
   // Prevent browser zoom when cmd/ctrl is pressed globally
   useEffect(() => {
     const handleGlobalWheel = (event: WheelEvent) => {
-      // Only prevent browser zoom when cmd/ctrl is pressed and we're over the piano roll
-      if ((event.ctrlKey || event.metaKey) && containerRef.current?.contains(event.target as Node)) {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const insideRect =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+
+      if (!insideRect) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      const syntheticEvent = {
+        ctrlKey: true,
+        metaKey: event.metaKey,
+        deltaX: event.deltaX,
+        deltaY: event.deltaY,
+        deltaMode: event.deltaMode,
+        preventDefault: () => event.preventDefault(),
+        stopPropagation: () => event.stopPropagation(),
+        clientX: event.clientX,
+        clientY: event.clientY,
+        altKey: event.altKey,
+        shiftKey: event.shiftKey,
+      } as unknown as React.WheelEvent<HTMLDivElement>;
+
+      handleWheel(syntheticEvent);
+    };
+
+    window.addEventListener("wheel", handleGlobalWheel, { passive: false });
+    const handleGesture = (event: Event) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const { clientX = 0, clientY = 0 } = event as unknown as { clientX?: number; clientY?: number };
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
         event.preventDefault();
       }
     };
 
-    window.addEventListener("wheel", handleGlobalWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleGlobalWheel);
+    window.addEventListener("gesturestart", handleGesture, { passive: false });
+    window.addEventListener("gesturechange", handleGesture, { passive: false });
+    window.addEventListener("gestureend", handleGesture, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleGlobalWheel);
+      window.removeEventListener("gesturestart", handleGesture);
+      window.removeEventListener("gesturechange", handleGesture);
+      window.removeEventListener("gestureend", handleGesture);
+    };
   }, []);
 
   // Handle wheel events for horizontal zoom (trackpad pinch)
   const handleWheel = useCallback(
     (event: React.WheelEvent<HTMLDivElement>) => {
-      // Only zoom when ctrl/cmd key is pressed (pinch gesture)
-      if (!event.ctrlKey && !event.metaKey) return;
+      const isPinchGesture = event.ctrlKey || event.metaKey;
+      if (!isPinchGesture) {
+        return;
+      }
 
-      // Always prevent default to stop browser zoom
       event.preventDefault();
       event.stopPropagation();
 
@@ -332,6 +384,7 @@ const PianoRoll = () => {
                     pixelsPerBeat={pixelsPerBeat}
                     scrollLeft={scrollLeft}
                     subdivisionsPerBeat={subdivisionsPerBeat}
+                    pianoKeys={pianoKeys}
                   />
                   {showGhostNotes && ghostClips.length > 0 && (
                     <GhostNotesLayer

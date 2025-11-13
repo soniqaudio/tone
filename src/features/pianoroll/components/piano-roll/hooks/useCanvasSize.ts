@@ -9,7 +9,10 @@ interface CanvasSizeResult {
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export const useCanvasSize = (keyHeight: number, pianoKeysLength: number): CanvasSizeResult => {
+export const useCanvasSize = (
+  keyHeight: number,
+  pianoKeysLength: number,
+): CanvasSizeResult => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
@@ -58,7 +61,7 @@ export const useCanvasSize = (keyHeight: number, pianoKeysLength: number): Canva
       container.removeEventListener("scroll", handleScroll);
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [keyHeight]);
 
   return {
     width,

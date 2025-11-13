@@ -10,6 +10,7 @@ interface StaticGridProps {
   pixelsPerBeat: number;
   scrollLeft: number;
   subdivisionsPerBeat: number;
+  pianoKeys: Array<{ note: string; isBlack: boolean; midi: number }>;
 }
 
 export const StaticGrid = ({
@@ -19,6 +20,7 @@ export const StaticGrid = ({
   pixelsPerBeat,
   scrollLeft,
   subdivisionsPerBeat,
+  pianoKeys,
 }: StaticGridProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -33,17 +35,14 @@ export const StaticGrid = ({
     ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, width, height);
 
-    // Base alternating row fills (dark neutrals)
-    const ROW_A = "#0b0b0d";
-    const ROW_B = "#111115";
-    for (let y = 0; y < height; y += keyHeight * 2) {
-      ctx.fillStyle = ROW_A;
-      ctx.fillRect(0, y, width, keyHeight);
-      const yB = y + keyHeight;
-      if (yB < height) {
-        ctx.fillStyle = ROW_B;
-        ctx.fillRect(0, yB, width, keyHeight);
-      }
+    const WHITE_ROW = "#111115";
+    const BLACK_ROW = "#0b0b0d";
+    const rows = pianoKeys.length;
+    for (let row = 0; row < rows; row += 1) {
+      const key = pianoKeys[row];
+      const top = row * keyHeight;
+      ctx.fillStyle = key.isBlack ? BLACK_ROW : WHITE_ROW;
+      ctx.fillRect(0, top, width, keyHeight);
     }
 
     // Vertical block shading: every 4 beats (1 bar) alternates light/dark
