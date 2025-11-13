@@ -65,6 +65,7 @@ export interface MidiState {
     ) => void;
     updateClipVelocity: (clipIds: string[], velocity: number) => void;
     setSelectedClipIds: (ids: string[]) => void;
+    splitClipAt: (clipId: string, cutMs: number) => void;
 
     // Clipboard
     copySelectedClips: () => void;

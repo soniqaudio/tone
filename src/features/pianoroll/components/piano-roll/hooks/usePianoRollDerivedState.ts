@@ -18,6 +18,8 @@ interface UsePianoRollDerivedStateProps {
   playheadMs: number;
   gridExtraBeats: number;
   gridResolutionId: string;
+  pianoRollZoom: number;
+  pianoRollKeyHeight: number;
 }
 
 interface UsePianoRollDerivedStateReturn {
@@ -69,6 +71,8 @@ export const usePianoRollDerivedState = ({
   playheadMs,
   gridExtraBeats,
   gridResolutionId,
+  pianoRollZoom,
+  pianoRollKeyHeight,
 }: UsePianoRollDerivedStateProps): UsePianoRollDerivedStateReturn => {
   // Piano keys (88 keys from A0 to C8)
   const pianoKeys = useMemo(() => generatePianoKeys(), []);
@@ -105,10 +109,10 @@ export const usePianoRollDerivedState = ({
     return [...activeTrackClips, ...previewClipsForActiveTrack].sort((a, b) => a.start - b.start);
   }, [activeTrackClips, recordingPreviewClips, activeTrackId]);
 
-  // Timing constants
+  // Timing constants with zoom multipliers
   const msPerBeat = 60000 / Math.max(tempo, 1);
-  const pixelsPerBeat = PIANO_ROLL.PIXELS_PER_BEAT;
-  const keyHeight = PIANO_ROLL.KEY_HEIGHT;
+  const pixelsPerBeat = PIANO_ROLL.PIXELS_PER_BEAT * pianoRollZoom;
+  const keyHeight = PIANO_ROLL.KEY_HEIGHT * pianoRollKeyHeight;
   const notePadding = PIANO_ROLL.NOTE_PADDING;
 
   // Grid resolution

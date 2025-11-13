@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { playbackController } from "@/core/playback/playbackController";
 import { useMidiStore } from "@/core/stores/useMidiStore";
 import { useMusicTheoryStore } from "@/core/stores/useMusicTheoryStore";
@@ -49,6 +49,9 @@ const PianoRoll = () => {
   const setPianoRollFollow = useUIStore((state) => state.actions.setPianoRollFollow);
   const toggleVelocityLane = useUIStore((state) => state.actions.toggleVelocityLane);
   const gridResolutionId = useUIStore((state) => state.pianoRollGridResolution);
+  const pianoRollZoom = useUIStore((state) => state.pianoRollZoom);
+  const pianoRollKeyHeight = useUIStore((state) => state.pianoRollKeyHeight);
+  const setPianoRollZoom = useUIStore((state) => state.actions.setPianoRollZoom);
 
   const activeTrackId = useTrackStore((state) => state.activeTrackId);
   const setActiveTrack = useTrackStore((state) => state.actions.setActiveTrack);
@@ -115,6 +118,8 @@ const PianoRoll = () => {
     playheadMs,
     gridExtraBeats,
     gridResolutionId,
+    pianoRollZoom,
+    pianoRollKeyHeight,
   });
 
   const {
@@ -192,6 +197,66 @@ const PianoRoll = () => {
 
   const velocityRowHeight = showVelocityLane ? VELOCITY_LANE_HEIGHT : 20;
 
+  // Prevent browser zoom when cmd/ctrl is pressed globally
+  useEffect(() => {
+    const handleGlobalWheel = (event: WheelEvent) => {
+      // Only prevent browser zoom when cmd/ctrl is pressed and we're over the piano roll
+      if ((event.ctrlKey || event.metaKey) && containerRef.current?.contains(event.target as Node)) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", handleGlobalWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleGlobalWheel);
+  }, []);
+
+  // Handle wheel events for horizontal zoom (trackpad pinch)
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      // Only zoom when ctrl/cmd key is pressed (pinch gesture)
+      if (!event.ctrlKey && !event.metaKey) return;
+
+      // Always prevent default to stop browser zoom
+      event.preventDefault();
+      event.stopPropagation();
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Use deltaX for horizontal pinch (trackpad) or deltaY for vertical scroll with modifier
+      // Trackpad pinch typically uses deltaY with ctrl/cmd
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : -event.deltaY;
+      
+      // Calculate zoom delta (negative delta = zoom in, positive = zoom out)
+      const zoomSpeed = 0.15;
+      const zoomDelta = delta * zoomSpeed * 0.01;
+      const currentZoom = pianoRollZoom;
+      const newZoom = Math.max(0.25, Math.min(4.0, currentZoom + zoomDelta));
+
+      if (newZoom === currentZoom) return;
+
+      // Preserve scroll position during zoom
+      // Calculate the point under the cursor in world coordinates
+      const rect = container.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const worldX = mouseX + scrollLeft;
+
+      // Calculate new scroll position to maintain visual position
+      const ratio = newZoom / currentZoom;
+      const newScrollLeft = worldX * ratio - mouseX;
+
+      setPianoRollZoom(newZoom);
+
+      // Update scroll position after a brief delay to allow state update
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollLeft = Math.max(0, newScrollLeft);
+        }
+      });
+    },
+    [pianoRollZoom, setPianoRollZoom, containerRef, scrollLeft],
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-transparent">
       <Timeline
@@ -213,6 +278,7 @@ const PianoRoll = () => {
           ref={containerRef}
           className="relative flex flex-1 overflow-auto overscroll-y-contain"
           style={{ cursor: "crosshair" }}
+          onWheel={handleWheel}
         >
           {/* Piano Keys - sticky horizontally, scrolls vertically with grid */}
           <div ref={pianoKeysRef} className="sticky left-0 z-10 flex-shrink-0">

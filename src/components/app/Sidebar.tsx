@@ -26,11 +26,18 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
   </svg>
 );
 
-export function Sidebar() {
+interface SidebarProps {
+  style?: React.CSSProperties;
+}
+
+export function Sidebar({ style }: SidebarProps) {
   const [activeTab, setActiveTab] = useState<"browser" | "ai">("browser");
 
   return (
-    <aside className="hidden w-72 shrink-0 border-r border-white/5 bg-[rgba(9,9,12,0.96)] text-zinc-200 lg:flex lg:flex-col">
+    <aside
+      className="hidden shrink-0 border-r border-white/5 bg-[rgba(9,9,12,0.96)] text-zinc-200 lg:flex lg:flex-col"
+      style={style}
+    >
       <div className="flex items-center border-b border-white/5 px-5 py-3">
         {[
           { id: "browser", label: "Browser" },

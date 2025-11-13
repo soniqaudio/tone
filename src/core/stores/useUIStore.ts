@@ -9,6 +9,11 @@ interface UIState {
   showVelocityLane: boolean;
   pianoRollPointer: { ms: number; noteNumber: number };
   pianoRollGridResolution: string;
+  cutToolActive: boolean;
+  sidebarWidth: number;
+  isFullSizeView: boolean;
+  pianoRollZoom: number;
+  pianoRollKeyHeight: number;
   actions: {
     setPianoRollScroll: (scroll: { left: number; top: number }) => void;
     setPianoRollFollow: (value: boolean) => void;
@@ -19,6 +24,13 @@ interface UIState {
     setShowVelocityLane: (value: boolean) => void;
     setPianoRollPointer: (pointer: { ms: number; noteNumber: number }) => void;
     setPianoRollGridResolution: (id: string) => void;
+    setCutToolActive: (active: boolean) => void;
+    toggleCutTool: () => void;
+    setSidebarWidth: (width: number) => void;
+    setFullSizeView: (value: boolean) => void;
+    toggleFullSizeView: () => void;
+    setPianoRollZoom: (zoom: number) => void;
+    setPianoRollKeyHeight: (height: number) => void;
   };
 }
 
@@ -40,6 +52,11 @@ export const useUIStore = create<UIState>((set) => ({
   showVelocityLane: false,
   pianoRollPointer: { ms: 0, noteNumber: 60 },
   pianoRollGridResolution: "1/16",
+  cutToolActive: false,
+  sidebarWidth: 288, // Default: w-72 = 288px
+  isFullSizeView: false,
+  pianoRollZoom: 1.0, // Horizontal zoom multiplier (range: 0.25x - 4.0x)
+  pianoRollKeyHeight: 1.0, // Vertical zoom multiplier (range: 0.5x - 3.0x)
   actions: {
     setPianoRollScroll: (scroll) => set({ pianoRollScroll: scroll }),
     setPianoRollFollow: (value) => set({ pianoRollFollowPlayhead: value }),
@@ -51,5 +68,12 @@ export const useUIStore = create<UIState>((set) => ({
     setShowVelocityLane: (value) => set({ showVelocityLane: value }),
     setPianoRollPointer: (pointer) => set({ pianoRollPointer: pointer }),
     setPianoRollGridResolution: (id) => set({ pianoRollGridResolution: id }),
+    setCutToolActive: (active) => set({ cutToolActive: active }),
+    toggleCutTool: () => set((state) => ({ cutToolActive: !state.cutToolActive })),
+    setSidebarWidth: (width) => set({ sidebarWidth: Math.max(200, Math.min(600, width)) }),
+    setFullSizeView: (value) => set({ isFullSizeView: value }),
+    toggleFullSizeView: () => set((state) => ({ isFullSizeView: !state.isFullSizeView })),
+    setPianoRollZoom: (zoom) => set({ pianoRollZoom: Math.max(0.25, Math.min(4.0, zoom)) }),
+    setPianoRollKeyHeight: (height) => set({ pianoRollKeyHeight: Math.max(0.5, Math.min(3.0, height)) }),
   },
 }));

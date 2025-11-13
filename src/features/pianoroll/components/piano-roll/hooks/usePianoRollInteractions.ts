@@ -2,6 +2,7 @@
 
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef } from "react";
 import type { MidiNoteClip } from "@/core/midi/types";
+import { useMidiStore } from "@/core/stores/useMidiStore";
 import { useUIStore } from "@/core/stores/useUIStore";
 import { useNoteMovement } from "../interactions/noteMovement";
 import { useCursorManagement } from "../interactions/useCursorManagement";
@@ -188,20 +189,6 @@ export const usePianoRollInteractions = ({
     viewportWidth,
   });
 
-  const { handleGridPointerMove: updateCursor } = useCursorManagement({
-    containerRef,
-    worldToMs: (worldX: number) => Math.max(0, (worldX / pixelsPerBeat) * msPerBeat),
-    worldToNoteNumber: (worldY: number) => {
-      const pointerIndex = Math.max(
-        0,
-        Math.min(pianoKeys.length - 1, Math.floor(worldY / keyHeight)),
-      );
-      return pianoKeys[pointerIndex]?.midi ?? 60;
-    },
-    findRightEdgeHit,
-    isIdle: () => modeRef.current === "idle",
-  });
-
   const findClipBodyHitInList = useCallback(
     (targetClips: MidiNoteClip[], worldX: number, worldY: number) => {
       for (let i = targetClips.length - 1; i >= 0; i--) {
@@ -227,6 +214,21 @@ export const usePianoRollInteractions = ({
     },
     [clips, findClipBodyHitInList],
   );
+
+  const { handleGridPointerMove: updateCursor } = useCursorManagement({
+    containerRef,
+    worldToMs: (worldX: number) => Math.max(0, (worldX / pixelsPerBeat) * msPerBeat),
+    worldToNoteNumber: (worldY: number) => {
+      const pointerIndex = Math.max(
+        0,
+        Math.min(pianoKeys.length - 1, Math.floor(worldY / keyHeight)),
+      );
+      return pianoKeys[pointerIndex]?.midi ?? 60;
+    },
+    findRightEdgeHit,
+    findClipBodyHit,
+    isIdle: () => modeRef.current === "idle",
+  });
 
   const findAnyClipBodyHit = useCallback(
     (worldX: number, worldY: number) => {
@@ -266,6 +268,16 @@ export const usePianoRollInteractions = ({
       });
 
       const bodyHit = findClipBodyHit(worldX, worldY);
+      const cutToolActive = useUIStore.getState().cutToolActive;
+
+      // Cut tool: split note at cursor position (only when cut tool is active and not using modifiers)
+      if (cutToolActive && bodyHit && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        const actions = useMidiStore.getState().actions;
+        actions.splitClipAt(bodyHit.id, pointerMs);
+        return;
+      }
 
       if (event.metaKey || event.ctrlKey) {
         event.preventDefault();

@@ -13,6 +13,7 @@ import { useUIStore } from "@/core/stores/useUIStore";
 import type { WorkspaceView } from "@/core/stores/useViewStore";
 import { useViewStore } from "@/core/stores/useViewStore";
 import { TopBarMidiControls } from "./TopBarMidiControls";
+import { VerticalZoomControl } from "./piano-roll/VerticalZoomControl";
 
 const VIEW_OPTIONS: Array<{ id: WorkspaceView; label: string; shortcut: string }> = [
   { id: "playlist", label: "Playlist", shortcut: "F5" },
@@ -158,6 +159,8 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
   const setGridResolution = useUIStore((state) => state.actions.setPianoRollGridResolution);
   const activeView = useViewStore((state) => state.activeView);
   const setActiveView = useViewStore((state) => state.actions.setActiveView);
+  const cutToolActive = useUIStore((state) => state.cutToolActive);
+  const toggleCutTool = useUIStore((state) => state.actions.toggleCutTool);
 
   const playheadMs = useTransportStore((state) => state.playheadMs);
   const setPlayheadMs = useTransportStore((state) => state.actions.setPlayheadMs);
@@ -271,8 +274,8 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-[rgba(6,6,9,0.92)] text-sm text-zinc-200 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-4 px-4 py-3">
-        {/* LEFT: Logo + File/Edit */}
+      <div className="relative flex items-center justify-between gap-4 px-4 py-3">
+        {/* LEFT: Logo + File/Edit + View Selector */}
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-bold text-white shadow-lg">
             tn
@@ -286,34 +289,28 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
             <div className="h-4 w-px bg-white/10" />
             <MenuDropdown label="Edit" items={editMenuItems} />
           </div>
+          <div className="hidden items-center gap-1 rounded-lg border border-white/10 bg-white/[0.02] px-1.5 py-1 lg:flex">
+            {VIEW_OPTIONS.map((option) => {
+              const isActive = activeView === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setActiveView(option.id)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* CENTER: Transport Controls */}
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 sm:flex">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-zinc-500">
-                BPM
-              </span>
-              <input
-                id={tempoInputId}
-                type="number"
-                value={tempo}
-                onChange={(event) => setTempo(Number(event.target.value))}
-                className="w-16 rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40"
-              />
-            </div>
-            <div className="h-6 w-px bg-white/10" />
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-zinc-500">
-                Time
-              </span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.02] px-2 py-1 text-sm font-mono text-white">
-                {formattedTime}
-              </span>
-            </div>
-          </div>
-
+        {/* CENTER: Transport Controls + BPM/Time */}
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3">
           <div className={transportClusterClass}>
             <button type="button" onClick={handleStop} className={iconButtonClass()} title="Stop">
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -370,28 +367,30 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
               </svg>
             </button>
           </div>
+
+          <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1 sm:flex">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              BPM
+            </span>
+            <input
+              id={tempoInputId}
+              type="number"
+              value={tempo}
+              onChange={(event) => setTempo(Number(event.target.value))}
+              className="w-12 rounded border border-white/10 bg-black/30 px-1.5 py-0.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40"
+            />
+            <div className="h-4 w-px bg-white/10" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              TIME
+            </span>
+            <span className="rounded border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-xs font-mono text-white">
+              {formattedTime}
+            </span>
+          </div>
         </div>
 
-        {/* RIGHT: View Selector + Grid + Undo/Redo + Settings */}
+        {/* RIGHT: Grid + Cut Tool + Settings */}
         <div className="flex items-center gap-2">
-          <div className={`${controlBlock} hidden lg:flex`}>
-            {VIEW_OPTIONS.map((option) => {
-              const isActive = activeView === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setActiveView(option.id)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white"
-                  }`}
-                  aria-pressed={isActive}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
           <div className="lg:hidden">
             <select
               value={activeView}
@@ -406,62 +405,45 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
             </select>
           </div>
 
-          <select
-            id={gridSelectId}
-            value={gridResolutionId}
-            onChange={(event) => setGridResolution(event.target.value)}
-            className="h-9 min-w-[5.5rem] rounded-lg border border-white/12 bg-black/40 px-2.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
-          >
-            {PIANO_ROLL.GRID_RESOLUTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              id={gridSelectId}
+              value={gridResolutionId}
+              onChange={(event) => setGridResolution(event.target.value)}
+              className="h-9 w-20 rounded-lg border border-white/12 bg-black/40 px-2.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+            >
+              {PIANO_ROLL.GRID_RESOLUTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
 
-          <div className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/[0.02] p-0.5">
+            <div className="flex h-9 items-center rounded-lg border border-white/12 bg-white/[0.02] px-2">
+              <VerticalZoomControl className="h-7" />
+            </div>
+
             <button
               type="button"
-              onClick={() => undo()}
-              disabled={!canUndo}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-zinc-400 transition-colors hover:border-white/15 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              title="Undo (Cmd+Z)"
+              onClick={toggleCutTool}
+              className={iconButtonClass(cutToolActive)}
+              title={cutToolActive ? "Cut tool active (Cmd+K)" : "Cut tool (Cmd+K)"}
             >
               <svg
                 aria-hidden="true"
-                className="h-3 w-3"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => redo()}
-              disabled={!canRedo}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-zinc-400 transition-colors hover:border-white/15 hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              title="Redo (Cmd+Shift+Z)"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3 w-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"
-                />
+                <circle cx="6" cy="6" r="3" />
+                <circle cx="6" cy="18" r="3" />
+                <path d="M20 4L8.12 15.88" />
+                <path d="M14.47 14.48L20 20" />
+                <path d="M8.12 8.12L12 12" />
               </svg>
             </button>
           </div>
@@ -475,7 +457,19 @@ export default function TopBar({ isPlaying, onPlay, onStop }: TopBarProps) {
               aria-haspopup="true"
               aria-expanded={settingsOpen}
             >
-              <span className="text-lg">⚙️</span>
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
             </button>
             {settingsOpen ? (
               <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-white/10 bg-[rgba(10,10,14,0.95)] p-4 shadow-layer-lg">

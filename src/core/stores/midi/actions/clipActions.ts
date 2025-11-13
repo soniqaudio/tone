@@ -1,5 +1,6 @@
 import type { MidiNoteClip } from "@/core/midi/types";
 import { midiNumberToName } from "@/core/midi/utils";
+import { generateClipId } from "@/core/utils/id";
 import type { MidiState } from "../types";
 import { deriveFromEvents, noteEventsFromClip } from "./sharedHelpers";
 
@@ -152,4 +153,67 @@ export const createClipActions = (
   },
 
   setSelectedClipIds: (ids: string[]) => set({ selectedClipIds: ids }),
+
+  splitClipAt: (clipId: string, cutMs: number) => {
+    const state = get();
+    const clip = state.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+
+    // Validate cut position is within clip bounds
+    const clipStart = clip.start;
+    const clipEnd = clip.start + clip.duration;
+    if (cutMs <= clipStart || cutMs >= clipEnd) return;
+
+    // Calculate durations for the two resulting clips
+    const firstDuration = cutMs - clipStart;
+    const secondDuration = clipEnd - cutMs;
+
+    // Create first clip (original, shortened)
+    const firstClip: MidiNoteClip = {
+      ...clip,
+      duration: firstDuration,
+    };
+
+    // Create second clip (new, starts at cut position)
+    const secondClip: MidiNoteClip = {
+      id: generateClipId(clip.noteNumber, cutMs),
+      noteNumber: clip.noteNumber,
+      noteName: clip.noteName,
+      channel: clip.channel,
+      velocity: clip.velocity,
+      start: cutMs,
+      duration: secondDuration,
+      trackId: clip.trackId,
+    };
+
+    // Remove old events for this clip
+    const filteredEvents = state.events.filter(
+      (event) => event.type === "cc" || event.noteId !== clipId,
+    );
+
+    // Add events for both new clips
+    const newEvents = [
+      ...filteredEvents,
+      ...noteEventsFromClip(firstClip),
+      ...noteEventsFromClip(secondClip),
+    ];
+
+    // Update clips array: replace old clip with two new clips
+    const updatedClips = state.clips
+      .filter((c) => c.id !== clipId)
+      .concat([firstClip, secondClip]);
+
+    const derived = deriveFromEvents(newEvents, undefined, updatedClips);
+
+    // Update selection to include both new clips
+    const newSelectedIds = state.selectedClipIds.includes(clipId)
+      ? [...state.selectedClipIds.filter((id) => id !== clipId), firstClip.id, secondClip.id]
+      : state.selectedClipIds;
+
+    set({
+      events: newEvents,
+      ...derived,
+      selectedClipIds: newSelectedIds,
+    });
+  },
 });

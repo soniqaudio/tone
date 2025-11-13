@@ -46,6 +46,15 @@ export const usePianoRollKeyboardShortcuts = ({
       }
 
       const usesModifier = event.metaKey || event.ctrlKey;
+      const key = event.key.toLowerCase();
+      
+      // K: Toggle cut tool (check early, before modifier check)
+      if (usesModifier && key === "k") {
+        event.preventDefault();
+        useUIStore.getState().actions.toggleCutTool();
+        return;
+      }
+
       if (!usesModifier) return;
 
       // Arrow Up/Down: Move notes vertically (pitch)
@@ -92,7 +101,6 @@ export const usePianoRollKeyboardShortcuts = ({
         return;
       }
 
-      const key = event.key.toLowerCase();
       const actions = useMidiStore.getState().actions;
 
       // E: Quantize selected notes

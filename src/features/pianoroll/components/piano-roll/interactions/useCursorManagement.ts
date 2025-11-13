@@ -6,6 +6,7 @@ interface UseCursorManagementProps {
   worldToMs: (worldX: number) => number;
   worldToNoteNumber: (worldY: number) => number;
   findRightEdgeHit: (worldX: number, worldY: number) => unknown;
+  findClipBodyHit: (worldX: number, worldY: number) => unknown;
   isIdle: () => boolean;
 }
 
@@ -14,6 +15,7 @@ export const useCursorManagement = ({
   worldToMs,
   worldToNoteNumber,
   findRightEdgeHit,
+  findClipBodyHit,
   isIdle,
 }: UseCursorManagementProps) => {
   // Handle pointer move to update cursor and pointer position
@@ -32,11 +34,20 @@ export const useCursorManagement = ({
 
       // Update cursor based on hover position (only when idle)
       if (isIdle()) {
+        const cutToolActive = useUIStore.getState().cutToolActive;
+        const bodyHit = findClipBodyHit(worldX, worldY);
         const edgeHit = findRightEdgeHit(worldX, worldY);
-        container.style.cursor = edgeHit ? "ew-resize" : "crosshair";
+
+        if (cutToolActive && bodyHit) {
+          container.style.cursor = "crosshair"; // Could use custom scissors cursor here
+        } else if (edgeHit) {
+          container.style.cursor = "ew-resize";
+        } else {
+          container.style.cursor = "crosshair";
+        }
       }
     },
-    [containerRef, worldToMs, worldToNoteNumber, findRightEdgeHit, isIdle],
+    [containerRef, worldToMs, worldToNoteNumber, findRightEdgeHit, findClipBodyHit, isIdle],
   );
 
   return {

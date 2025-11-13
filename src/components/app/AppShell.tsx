@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { ResizableDivider } from "@/components/app/ResizableDivider";
 import { Sidebar } from "@/components/app/Sidebar";
 import { MixerView } from "@/components/Mixer/MixerView";
 import { PlaylistView } from "@/components/Playlist/PlaylistView";
@@ -9,6 +10,7 @@ import { useStopRecordingOnTransport } from "@/core/hooks/useStopRecordingOnTran
 import { playbackController } from "@/core/playback/playbackController";
 import { useMidiStore } from "@/core/stores/useMidiStore";
 import { useTransportStore } from "@/core/stores/useTransportStore";
+import { useUIStore } from "@/core/stores/useUIStore";
 import { useViewStore } from "@/core/stores/useViewStore";
 import KeyboardInput from "@/features/pianoroll/components/KeyboardInput";
 import PianoRoll from "@/features/pianoroll/components/PianoRoll";
@@ -129,12 +131,42 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePlay, setActiveView]);
 
+  const sidebarWidth = useUIStore((state) => state.sidebarWidth);
+  const isFullSizeView = useUIStore((state) => state.isFullSizeView);
+  const toggleFullSizeView = useUIStore((state) => state.actions.toggleFullSizeView);
+
+  // Global keyboard shortcut for full size view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      // Cmd/Ctrl+F: Toggle full size view
+      if (cmdOrCtrl && e.key === "f" && !e.shiftKey && !e.altKey) {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+          return; // Don't toggle if typing in input
+        }
+        e.preventDefault();
+        toggleFullSizeView();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [toggleFullSizeView]);
+
   return (
     <div className="flex h-screen w-full flex-col bg-zinc-950 font-sans text-zinc-50">
       {isPianoRollActive ? <KeyboardInput /> : null}
-      <TopBar isPlaying={isPlaying} onPlay={handlePlay} onStop={handleStop} />
+      {!isFullSizeView && <TopBar isPlaying={isPlaying} onPlay={handlePlay} onStop={handleStop} />}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <Sidebar />
+        {!isFullSizeView && (
+          <>
+            <Sidebar style={{ width: sidebarWidth }} />
+            <ResizableDivider />
+          </>
+        )}
         <main className="relative flex flex-1 min-h-0 overflow-hidden bg-zinc-950/90">
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-transparent mix-blend-overlay" />
           <div className="relative z-10 flex-1 min-h-0 overflow-hidden">{viewComponent}</div>

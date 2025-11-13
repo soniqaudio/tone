@@ -164,6 +164,10 @@ export const useNoteMovement = ({
         return false;
       }
 
+      if (!pianoKeys || pianoKeys.length === 0) {
+        return false;
+      }
+
       const baseNoteIndex = Math.max(
         0,
         Math.min(
