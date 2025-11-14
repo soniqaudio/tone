@@ -215,32 +215,26 @@ const PianoRoll = () => {
       // Use deltaX for horizontal pinch (trackpad) or deltaY for vertical scroll with modifier
       // Trackpad pinch typically uses deltaY with ctrl/cmd
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : -event.deltaY;
-      
+
       // Calculate zoom delta (negative delta = zoom in, positive = zoom out)
-      const zoomSpeed = 0.15;
+      const zoomSpeed = 0.5;
       const zoomDelta = delta * zoomSpeed * 0.01;
       const currentZoom = pianoRollZoom;
       const newZoom = Math.max(0.25, Math.min(4.0, currentZoom + zoomDelta));
 
       if (newZoom === currentZoom) return;
 
-      // Preserve scroll position during zoom
-      // Calculate the point under the cursor in world coordinates
       const rect = container.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
       const worldX = mouseX + scrollLeft;
-
-      // Calculate new scroll position to maintain visual position
       const ratio = newZoom / currentZoom;
-      const newScrollLeft = worldX * ratio - mouseX;
+      const newScrollLeft = Math.max(0, worldX * ratio - mouseX);
 
-      setPianoRollZoom(newZoom);
-
-      // Update scroll position after a brief delay to allow state update
+      // Apply scroll + zoom together on the next frame to avoid jitter
       requestAnimationFrame(() => {
-        if (container) {
-          container.scrollLeft = Math.max(0, newScrollLeft);
-        }
+        if (!container) return;
+        container.scrollLeft = newScrollLeft;
+        setPianoRollZoom(newZoom);
       });
     },
     [pianoRollZoom, setPianoRollZoom, containerRef, scrollLeft],
