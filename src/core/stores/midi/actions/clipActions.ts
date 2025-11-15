@@ -79,6 +79,8 @@ export const createClipActions = (
         start: update.start,
         noteNumber: boundedNoteNumber,
         noteName: midiNumberToName(boundedNoteNumber),
+        // Preserve patternId
+        patternId: clip.patternId,
       };
     });
 
@@ -184,6 +186,7 @@ export const createClipActions = (
       start: cutMs,
       duration: secondDuration,
       trackId: clip.trackId,
+      patternId: clip.patternId, // Preserve patternId
     };
 
     // Remove old events for this clip

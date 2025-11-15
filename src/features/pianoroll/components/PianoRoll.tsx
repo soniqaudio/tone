@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { playbackController } from "@/core/playback/playbackController";
 import { useMidiStore } from "@/core/stores/useMidiStore";
 import { useMusicTheoryStore } from "@/core/stores/useMusicTheoryStore";
+import { usePatternStore } from "@/core/stores/usePatternStore";
 import { useTrackStore } from "@/core/stores/useTrackStore";
 import { useTransportStore } from "@/core/stores/useTransportStore";
 import { useUIStore } from "@/core/stores/useUIStore";
@@ -56,6 +57,7 @@ const PianoRoll = () => {
 
   const activeTrackId = useTrackStore((state) => state.activeTrackId);
   const setActiveTrack = useTrackStore((state) => state.actions.setActiveTrack);
+  const editingPatternId = usePatternStore((state) => state.editingPatternId);
 
   // Refs
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -113,6 +115,7 @@ const PianoRoll = () => {
     showSustainExtended,
     showGhostNotes,
     activeTrackId,
+    editingPatternId,
     recordingPreviewClips,
     liveEvents,
     tempo,

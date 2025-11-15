@@ -6,6 +6,8 @@ import { useMidiStore } from "@/core/stores/useMidiStore";
 import { useMusicTheoryStore } from "@/core/stores/useMusicTheoryStore";
 import { useTransportStore } from "@/core/stores/useTransportStore";
 import { getActiveTrackId } from "@/core/utils/trackUtils";
+import { getOrCreateEditingPattern, updatePatternClipLengths } from "@/core/utils/patternUtils";
+import { usePatternStore } from "@/core/stores/usePatternStore";
 import { useMidiAccess } from "@/features/pianoroll/hooks/useMidiAccess";
 import { useMidiRecorder } from "@/features/pianoroll/hooks/useMidiRecorder";
 import { useTypingPiano } from "@/features/pianoroll/hooks/useTypingPiano";
@@ -58,6 +60,7 @@ export default function KeyboardInput() {
       channel: number;
     }) => {
       const trackId = getActiveTrackId();
+      const patternId = getOrCreateEditingPattern();
       beginRecordingPreview({
         noteId,
         noteNumber,
@@ -65,6 +68,7 @@ export default function KeyboardInput() {
         velocity,
         channel,
         trackId,
+        patternId,
       });
     },
     [beginRecordingPreview],
@@ -227,6 +231,15 @@ export default function KeyboardInput() {
       lastEventCountRef.current = 0;
       midiActions.setRecording(false);
       clearRecordingPreviews();
+      
+      // Update pattern clip length after recording finishes
+      // Use setTimeout to ensure recorded notes have been processed
+      const editingPatternId = usePatternStore.getState().editingPatternId;
+      if (editingPatternId) {
+        setTimeout(() => {
+          updatePatternClipLengths(editingPatternId);
+        }, 100); // Slightly longer delay for recording to ensure all events are processed
+      }
     }
   }, [recordArm, isRecording, isPlaying, playheadMs, recorder, clearRecordingPreviews]);
 
