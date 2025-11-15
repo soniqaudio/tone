@@ -5,11 +5,11 @@
 
 :root {
   /* === NEUTRAL PALETTE (Saturation = 0) === */
-  /* Incremental lightness scale for depth */
-  --bg-0: hsl(0, 0%, 5%); /* Deepest - base page */
+  /* Updated to match new design direction: #0F0F10 → #121214 gradient */
+  --bg-0: hsl(0, 0%, 6%); /* Deepest - base page (#0F0F10) */
   --bg-5: hsl(0, 0%, 8%); /* Sunken elements (inputs) */
-  --bg-10: hsl(0, 0%, 10%); /* First elevation (sidebar) */
-  --bg-15: hsl(0, 0%, 13%); /* Second elevation (top bar, cards) */
+  --bg-10: hsl(0, 0%, 11%); /* First elevation (sidebar) - #1A1B1D */
+  --bg-15: hsl(0, 0%, 13%); /* Second elevation (top bar, cards) - #202124 */
   --bg-20: hsl(0, 0%, 16%); /* Third elevation (modals, popups) */
   --bg-25: hsl(0, 0%, 19%); /* Hover states */
   --bg-30: hsl(0, 0%, 22%); /* Active/pressed states */
@@ -29,20 +29,23 @@
   --text-disabled: hsl(0, 0%, 35%); /* Disabled */
 
   /* Borders - subtle increments */
+  /* Updated to match new design: #2A2B2E for strokes */
   --border-subtle: hsla(0, 0%, 100%, 0.06);
   --border-medium: hsla(0, 0%, 100%, 0.1);
   --border-strong: hsla(0, 0%, 100%, 0.15);
+  --border-stroke: hsl(0, 0%, 16.5%); /* #2A2B2E */
 
   /* Highlight for shiny effect */
   --highlight-top: hsla(0, 0%, 100%, 0.08);
 
   /* === PRIMARY COLOR (Brand/Actions) === */
+  /* Updated to #3E7BFA (Blue 500) */
   --primary-hue: 217;
-  --primary: hsl(var(--primary-hue), 91%, 60%);
-  --primary-hover: hsl(var(--primary-hue), 91%, 65%);
-  --primary-active: hsl(var(--primary-hue), 91%, 55%);
-  --primary-muted: hsl(var(--primary-hue), 91%, 50%);
-  --primary-bg: hsl(var(--primary-hue), 91%, 15%);
+  --primary: hsl(217, 91%, 62%); /* #3E7BFA */
+  --primary-hover: hsl(217, 91%, 67%);
+  --primary-active: hsl(217, 91%, 57%);
+  --primary-muted: hsl(217, 91%, 52%);
+  --primary-bg: hsl(217, 91%, 15%);
 
   --accent-hue: 286;
   --accent: hsl(var(--accent-hue), 91%, 65%);
@@ -73,10 +76,11 @@
     inset 0 1px 0 0 var(--highlight-top);
 
   /* Large elevation - modals, dropdowns */
+  /* Refined: subtle layering rgba(0,0,0,0.35) at 32px blur, 2px spread */
   --shadow-lg:
     0 0 0 1px var(--border-medium),
-    0 4px 6px -2px hsla(0, 0%, 0%, 0.5),
-    0 10px 15px -3px hsla(0, 0%, 0%, 0.4),
+    0 4px 6px -2px rgba(0, 0, 0, 0.35),
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 0 var(--highlight-top);
 
   /* Extra large - overlays */
@@ -108,11 +112,13 @@
   --space-10: 2.5rem; /* 40px */
 
   /* === BORDER RADIUS === */
-  --radius-sm: 0.375rem; /* 6px */
-  --radius-md: 0.5rem; /* 8px */
-  --radius-lg: 0.75rem; /* 12px */
+  /* Updated: functional components use 4px, panels use 6-8px */
+  --radius-sm: 0.25rem; /* 4px - functional components */
+  --radius-md: 0.375rem; /* 6px - panels/cards */
+  --radius-lg: 0.5rem; /* 8px - larger panels */
   --radius-xl: 1rem; /* 16px */
   --radius-full: 9999px;
+  --radius: var(--radius-sm); /* Default radius for shadcn */
 
   /* === TRANSITIONS === */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);

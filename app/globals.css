@@ -2,23 +2,64 @@
 @import "../src/styles/design-system.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Map our design tokens to shadcn expected tokens */
+  /* Enhanced depth: base is darkest, layers get progressively lighter */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  
+  /* Shadcn color tokens mapped to our design system */
+  /* Cards and elevated surfaces use layer-2 for subtle depth */
+  --card: var(--bg-layer-2);
+  --card-foreground: var(--text-primary);
+  /* Popovers use layer-3 for more elevation */
+  --popover: var(--bg-layer-3);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--primary);
+  --primary-foreground: hsl(0, 0%, 100%);
+  /* Secondary uses layer-1 for subtle background variation */
+  --secondary: var(--bg-layer-1);
+  --secondary-foreground: var(--text-primary);
+  /* Muted backgrounds use layer-1 with more opacity for depth */
+  --muted: hsl(0, 0%, 11%);
+  --muted-foreground: var(--text-secondary);
+  /* Accent uses layer-2 for hover states */
+  --accent: var(--bg-layer-2);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--error);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: var(--border-subtle);
+  --input: var(--border-medium);
+  --ring: var(--primary);
+  --radius: var(--radius-sm); /* 4px for functional components */
 }
 
 /* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind theme at-rule */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
 html,

@@ -89,5 +89,4 @@ Host apps pass objects implementing these interfaces; the piano roll never touch
 2. Clone new repo, copy piano-roll files.
 3. Introduce API interfaces and context/provider.
 4. Replace store imports with injected APIs.
-5. Stub demo app + README.
-6. Verify marquee selection, zoom, copy/paste still work in the demo.
+e
