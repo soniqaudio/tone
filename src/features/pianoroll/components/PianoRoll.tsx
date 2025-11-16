@@ -340,7 +340,13 @@ const PianoRoll = () => {
         >
           {/* Piano Keys - sticky horizontally, scrolls vertically with grid */}
           <div ref={pianoKeysRef} className="sticky left-0 z-10 flex-shrink-0">
-            <PianoKeys pianoKeys={pianoKeys} keyHeight={keyHeight} activeNotes={activeNotes} />
+            <PianoKeys
+              pianoKeys={pianoKeys}
+              keyHeight={keyHeight}
+              activeNotes={activeNotes}
+              clips={activeTrackClips}
+              playheadMs={playheadMs}
+            />
           </div>
 
           {/* Grid + Velocity lane stack */}
