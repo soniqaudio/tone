@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useTrackStore } from "./useTrackStore";
 
 export interface Pattern {
   id: string;
@@ -49,10 +50,28 @@ const createPattern = (name: string, trackId: string, color?: string): Pattern =
   };
 };
 
-export const usePatternStore = create<PatternState>((set, get) => ({
-  patterns: [],
-  editingPatternId: null,
-  actions: {
+export const usePatternStore = create<PatternState>((set, get) => {
+  // Initialize default Pattern 1 on Track 1
+  // We need to get Track 1 ID after the store is created
+  const initializeDefaultPattern = (): Pattern => {
+    const { tracks } = useTrackStore.getState();
+    const track1Id = tracks[0]?.id ?? "track-default";
+    const now = Date.now();
+    return {
+      id: `pattern-default-1`,
+      name: "Pattern 1",
+      trackId: track1Id,
+      color: PATTERN_COLORS[0],
+      createdAt: now,
+      updatedAt: now,
+    };
+  };
+
+  const defaultPattern = initializeDefaultPattern();
+  return {
+    patterns: [defaultPattern], // Start with Pattern 1
+    editingPatternId: defaultPattern.id, // Set Pattern 1 as editing by default
+    actions: {
     createPattern: (name, trackId, color) => {
       const newPattern = createPattern(name, trackId, color);
       set((state) => ({
@@ -80,6 +99,7 @@ export const usePatternStore = create<PatternState>((set, get) => ({
     getPatternsByTrack: (trackId) => {
       return get().patterns.filter((p) => p.trackId === trackId);
     },
-  },
-}));
+    },
+  };
+});
 

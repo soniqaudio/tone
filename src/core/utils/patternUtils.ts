@@ -104,49 +104,32 @@ export const updatePatternClipLengths = (patternId: string): void => {
  * @returns The editing pattern ID for the active track
  */
 export const getOrCreateEditingPattern = (): string => {
-  const { editingPatternId, actions: patternActions } = usePatternStore.getState();
-  const { actions: playlistActions } = usePlaylistStore.getState();
+  const { editingPatternId, patterns, actions: patternActions } = usePatternStore.getState();
   const activeTrackId = getActiveTrackId();
 
-  // If there's already an editing pattern for this track, return it
+  // If there's already an editing pattern, return it
   if (editingPatternId) {
     const editingPattern = patternActions.getPattern(editingPatternId);
-    if (editingPattern && editingPattern.trackId === activeTrackId) {
+    if (editingPattern) {
       return editingPatternId;
     }
   }
 
-  // Check if there's already a pattern for this track
-  const existingPatterns = patternActions.getPatternsByTrack(activeTrackId);
-  if (existingPatterns.length > 0) {
-    // Use the first pattern for this track and set it as editing
-    const firstPattern = existingPatterns[0];
+  // Default: Use Pattern 1 (always exists)
+  const pattern1 = patterns.find((p) => p.id === "pattern-default-1");
+  if (pattern1) {
+    patternActions.setEditingPattern(pattern1.id);
+    return pattern1.id;
+  }
+
+  // Fallback: Use first pattern if Pattern 1 doesn't exist
+  if (patterns.length > 0) {
+    const firstPattern = patterns[0];
     patternActions.setEditingPattern(firstPattern.id);
     return firstPattern.id;
   }
 
-  // ✅ FL Studio-style: Each new pattern gets its own track row
-  const trackId = getOrCreateTrackForPattern();
-  const track = useTrackStore.getState().tracks.find((t) => t.id === trackId);
-  const patternCount = usePatternStore.getState().patterns.length;
-  const patternName = track ? `${track.name} Pattern` : `Pattern ${patternCount + 1}`;
-  
-  const patternId = patternActions.createPattern(patternName, trackId);
-  patternActions.setEditingPattern(patternId);
-  
-  // ✅ FL Studio workflow: Auto-create a playlist clip for this pattern
-  // Place at bar 0 on the new track (vertical stacking, not horizontal)
-  const patternLength = calculatePatternLength(patternId); // Calculate length based on MIDI
-  
-  playlistActions.addClip({
-    patternId,
-    trackId, // New track for each pattern
-    start: 0, // Always start at bar 0 on new track
-    length: patternLength, // Dynamic length based on MIDI content
-    label: patternName,
-    type: "Pattern",
-  });
-  
-  return patternId;
+  // Should never reach here since Pattern 1 is initialized
+  return "";
 };
 

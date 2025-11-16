@@ -158,7 +158,7 @@ export default function KeyboardInput() {
     });
   }, [midiAccessRequestToken, requestAccess, setMidiAccessError, setMidiAccessState]);
 
-  // Handle live MIDI input (visual feedback)
+  // Handle live MIDI input (audio playback for all notes)
   useEffect(() => {
     if (!selectedInput) return;
 
@@ -213,7 +213,7 @@ export default function KeyboardInput() {
       selectedInput.onmidimessage = null;
       selectedInput.removeEventListener("midimessage", handleMidiMessage);
     };
-  }, [selectedInput, recordArm, recorder, setMidiAccessError, setMidiAccessState]);
+  }, [selectedInput, setMidiAccessError, setMidiAccessState]);
 
   // Handle recording state changes
   useEffect(() => {

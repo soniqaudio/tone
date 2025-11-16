@@ -21,11 +21,38 @@ export function PlaylistView() {
   const tracks = useTrackStore((state) => state.tracks);
   const patterns = usePatternStore((state) => state.patterns);
   const createPattern = usePatternStore((state) => state.actions.createPattern);
-  const activeTrackId = useTrackStore((state) => state.activeTrackId);
   const playlistClips = usePlaylistStore((state) => state.clips);
   const getClipsByTrack = usePlaylistStore((state) => state.actions.getClipsByTrack);
   const [isCreatingPattern, setIsCreatingPattern] = useState(false);
   const [newPatternName, setNewPatternName] = useState("");
+
+  // Initialize default Pattern 1 with playlist clip if needed
+  useEffect(() => {
+    const { patterns, actions: patternActions } = usePatternStore.getState();
+    const { clips, actions: playlistActions } = usePlaylistStore.getState();
+    const { tracks } = useTrackStore.getState();
+    
+    // Ensure Pattern 1 exists and has a playlist clip
+    const pattern1 = patterns.find((p) => p.id === "pattern-default-1");
+    if (pattern1 && tracks.length > 0) {
+      const track1 = tracks[0];
+      const pattern1Clip = clips.find((c) => c.patternId === pattern1.id);
+      
+      if (!pattern1Clip && track1) {
+        // Create playlist clip for Pattern 1
+        playlistActions.addClip({
+          patternId: pattern1.id,
+          trackId: track1.id,
+          start: 0,
+          length: 1,
+          label: pattern1.name,
+          type: "Pattern",
+        });
+        // Set Pattern 1 as editing
+        patternActions.setEditingPattern(pattern1.id);
+      }
+    }
+  }, []);
 
   const handleCreatePattern = () => {
     if (!newPatternName.trim()) return;
@@ -53,9 +80,14 @@ export function PlaylistView() {
     setIsCreatingPattern(false);
   };
 
-  const patternsByTrack = new Map<string, typeof patterns>();
-  tracks.forEach((track) => {
-    patternsByTrack.set(track.id, patterns.filter((p) => p.trackId === track.id));
+  // Sort patterns by track order (to maintain visual order)
+  const sortedPatterns = [...patterns].sort((a, b) => {
+    const trackAIndex = tracks.findIndex((t) => t.id === a.trackId);
+    const trackBIndex = tracks.findIndex((t) => t.id === b.trackId);
+    if (trackAIndex !== trackBIndex) {
+      return trackAIndex - trackBIndex;
+    }
+    return a.createdAt - b.createdAt;
   });
 
   return (
@@ -71,82 +103,63 @@ export function PlaylistView() {
             </div>
           ) : (
             <>
-              {tracks.map((track) => {
-                const trackPatterns = patternsByTrack.get(track.id) ?? [];
+              {/* Show all patterns in a flat list */}
+              {sortedPatterns.map((pattern) => {
+                const track = tracks.find((t) => t.id === pattern.trackId);
                 return (
-                  <div key={track.id}>
-                    <div
-                      className="flex items-center justify-between border-b border-subtle px-4"
-                      style={{ height: `${ROW_HEIGHT}px` }}
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <p className="text-[13px] font-medium text-foreground">{track.name}</p>
-                        <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-disabled">
-                          TRACK
-                        </p>
-                      </div>
-                      <span className="text-[9px] font-medium uppercase tracking-[0.15em] text-disabled">
-                        PAT
-                      </span>
+                  <div
+                    key={pattern.id}
+                    className="flex items-center justify-between border-b border-subtle px-4 pl-8"
+                    style={{ height: `${ROW_HEIGHT}px` }}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <p className="text-[12px] font-medium text-foreground">{pattern.name}</p>
+                      <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-disabled">
+                        PATTERN
+                      </p>
                     </div>
-                    {/* Pattern list for this track */}
-                    {trackPatterns.map((pattern) => (
-                      <div
-                        key={pattern.id}
-                        className="flex items-center justify-between border-b border-subtle px-4 pl-8"
-                        style={{ height: `${ROW_HEIGHT}px` }}
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          <p className="text-[12px] font-medium text-foreground">{pattern.name}</p>
-                          <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-disabled">
-                            PATTERN
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {/* New Pattern button */}
-                    {activeTrackId === track.id && (
-                      <div className="border-b border-subtle px-4 pl-8" style={{ height: `${ROW_HEIGHT}px` }}>
-                        {isCreatingPattern ? (
-                          <div className="flex items-center gap-2 py-2">
-                            <input
-                              type="text"
-                              value={newPatternName}
-                              onChange={(e) => setNewPatternName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  handleCreatePattern();
-                                } else if (e.key === "Escape") {
-                                  setIsCreatingPattern(false);
-                                  setNewPatternName("");
-                                }
-                              }}
-                              placeholder="Pattern name..."
-                              className="h-7 flex-1 rounded-sm border border-subtle bg-layer-1 px-2 text-xs text-foreground placeholder:text-tertiary focus:border-primary focus:outline-none"
-                              autoFocus
-                            />
-                            <button
-                              type="button"
-                              onClick={handleCreatePattern}
-                              className="h-7 rounded-sm border border-primary bg-primary px-2 text-xs font-medium text-white hover:bg-primary/90"
-                            >
-                              Add
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setIsCreatingPattern(true)}
-                            className="flex h-full w-full items-center px-2 text-xs font-medium text-tertiary hover:text-foreground"
-                          >
-                            + New Pattern
-                          </button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}
+              
+              {/* Single "+" button below last pattern */}
+              <div className="border-b border-subtle px-4 pl-8" style={{ height: `${ROW_HEIGHT}px` }}>
+                {isCreatingPattern ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <input
+                      type="text"
+                      value={newPatternName}
+                      onChange={(e) => setNewPatternName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreatePattern();
+                        } else if (e.key === "Escape") {
+                          setIsCreatingPattern(false);
+                          setNewPatternName("");
+                        }
+                      }}
+                      placeholder="Pattern name..."
+                      className="h-7 flex-1 rounded-sm border border-subtle bg-layer-1 px-2 text-xs text-foreground placeholder:text-tertiary focus:border-primary focus:outline-none"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreatePattern}
+                      className="h-7 rounded-sm border border-primary bg-primary px-2 text-xs font-medium text-white hover:bg-primary/90"
+                    >
+                      Add
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingPattern(true)}
+                    className="flex h-full w-full items-center px-2 text-xs font-medium text-tertiary hover:text-foreground"
+                  >
+                    + New Pattern
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>
