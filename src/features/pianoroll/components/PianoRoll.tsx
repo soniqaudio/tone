@@ -446,7 +446,9 @@ const PianoRoll = () => {
         <button
           type="button"
           onClick={toggleVelocityLane}
-          className="pointer-events-auto absolute left-3 top-1/2 z-10 flex -translate-y-1/2 items-center gap-2 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70 transition-fast hover:text-primary"
+          className={`pointer-events-auto absolute left-3 z-10 flex items-center gap-2 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70 transition-fast hover:text-primary ${
+            showVelocityLane ? 'top-2' : 'top-1/2 -translate-y-1/2'
+          }`}
         >
           <span>Velocity</span>
           <svg
@@ -458,7 +460,7 @@ const PianoRoll = () => {
             strokeWidth="1.6"
           >
             {showVelocityLane ? (
-              <path d="M3 7l3-3 3 3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M7 3l-3 3-3-3" strokeLinecap="round" strokeLinejoin="round" />
             ) : (
               <path d="M3 5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round" />
             )}
@@ -480,6 +482,7 @@ const PianoRoll = () => {
                   msPerBeat={msPerBeat}
                   selectedClipIds={selectedClipIds}
                   onVelocityChange={handleVelocityChange}
+                  subdivisionsPerBeat={subdivisionsPerBeat}
                   isOpen
                 />
               </div>

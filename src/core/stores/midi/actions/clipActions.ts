@@ -123,7 +123,8 @@ export const createClipActions = (
   updateClipVelocity: (clipIds: string[], velocity: number) => {
     if (clipIds.length === 0) return;
     const state = get();
-    const clampedVelocity = Math.max(0, Math.min(1, velocity));
+    // Clamp velocity to MIDI range (0-127)
+    const clampedVelocity = Math.max(0, Math.min(127, Math.round(velocity)));
     const idSet = new Set(clipIds);
 
     const updatedClips = state.clips.map((clip) => {
